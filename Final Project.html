@@ -13094,13 +13094,31 @@ div#notebook {
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h2 id="Purpose">Purpose<a class="anchor-link" href="#Purpose">&#182;</a></h2><p>This project aims to analyze 2019 app data from the iTunes and Google Play stores, analyzing and combining both datasets and viewing any sorts of trends that can be derived from them, in a way, establishing a tierlist of sorts between all of these games.</p>
-<p>The iTunes mobile game dataset can be found here: <a href="https://www.kaggle.com/tristan581/17k-apple-app-store-strategy-games">https://www.kaggle.com/tristan581/17k-apple-app-store-strategy-games</a></p>
+<h2 id="Purpose">Purpose<a class="anchor-link" href="#Purpose">&#182;</a></h2><p>This project aims to analyze 2019 app data from the iTunes and Google Play stores, analyzing and combining both datasets and viewing any sorts of trends that can be derived from them, in a way, establishing a tierlist of sorts between all of these games. We will also do a brief look into revenue streams for certain apps and look at the relationship between ranking, reviews and revenue.</p>
+<h2 id="Datasets">Datasets<a class="anchor-link" href="#Datasets">&#182;</a></h2><p>The iTunes mobile game dataset can be found here: <a href="https://www.kaggle.com/tristan581/17k-apple-app-store-strategy-games">https://www.kaggle.com/tristan581/17k-apple-app-store-strategy-games</a></p>
 <p>The Google Play Store mobile game dataset can be found here:
 <a href="https://www.kaggle.com/lava18/google-play-store-apps/home?select=googleplaystore.csv">https://www.kaggle.com/lava18/google-play-store-apps/home?select=googleplaystore.csv</a></p>
+<p>This project will also scrape data from <a href="https://thinkgaming.com/app-sales-data">https://thinkgaming.com/app-sales-data</a> which covers data pertaining to iTunes mobile game sales (not android). Unfortunately, most data pertaining to mobile game sales is locked behind paywalls from sites such as "Think Gaming" and "Sensor Tower" which provide a wide variety of metrics mainly intended for corporate usage.</p>
 
 </div>
 </div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[1]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="kn">from</span> <span class="nn">bs4</span> <span class="kn">import</span> <span class="n">BeautifulSoup</span>
+<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">re</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
 </div>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div><div class="inner_cell">
@@ -13116,14 +13134,22 @@ div#notebook {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[23]:</div>
+<div class="prompt input_prompt">In&nbsp;[2]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># Sample query of the itunes API for the game Fate/Grand Order which is one of the games I play</span>
 <span class="n">query</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;https://itunes.apple.com/search?producerTerm=Aniplex+Inc.&amp;term=Fate/Grand+Order&amp;entity=software&quot;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Status of request: </span><span class="si">{</span><span class="n">query</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">query</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s2">&quot;results&quot;</span><span class="p">]:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="s2">&quot;trackName&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;, &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="s2">&quot;description&quot;</span><span class="p">]))</span>
+
+<span class="c1"># This to iterate through the results, it&#39;s just a simple for loop</span>
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">for item in query.json()[&quot;results&quot;]:</span>
+<span class="sd">    print(item[&quot;trackName&quot;] + &quot;, &quot; + str(item[&quot;description&quot;]))</span>
+<span class="sd">&#39;&#39;&#39;</span>
+
+<span class="c1">#Just gonna grab the first response for brevity</span>
+<span class="n">item</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s2">&quot;results&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="s2">&quot;trackName&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;, &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="s2">&quot;description&quot;</span><span class="p">]))</span>
 </pre></div>
 
     </div>
@@ -13180,751 +13206,6 @@ Enabled devices: iPhone 5 and higher, iPad 3rd generation and higher, iPad Mini 
 *Incompatible with iPod touch 5th generation and lower, iPhone 4S and lower.
 
 This application uses &#34;CRIWARE (TM)&#34; from CRI Middleware Co. Ltd.
-超级攻略视频 for Fate/Grand Order, 《超级攻略视频 for Fate/命运冠位指定》Fate/命运冠位指定最给力的游戏攻略,全网最权威游戏攻略、礼装图鉴、漫画连载、游戏视频等全方位资料,并拥有最新游戏资讯。大量Fate/命运冠位指定主播高玩入驻！
-最重要的是，更多关于你们的老婆saber的福利要来了！
-【最全面的游戏视频】
-追巡各大重要赛事、战报。实时同步国内外知名解说和主播的最新直播内容。
-【最精品的游戏攻略】
-实时同步各大网站、贴吧论坛的精品图文攻略。为您提供最前沿的攻关资料。
-【最贴心的进阶指导】
-高手玩家打法、人物使用、职业详解、技能详细剖析，助您一步成神。
-
-超级攻略视频，给你最给力的游戏攻略，最前沿的视频直播，最高杆的玩法，最实用的资料！
-不管你是老司机还是小菜鸡，你需要的都在这里！还等什么！
-聖晶石無料攻略 for Fate/Grand Order, 聖晶石無料攻略で聖晶石を攻略せよ！
-聖晶石攻略をしながら遊べる聖晶石攻略掲示板が登場！
-
-「聖晶石無料攻略 for Fate/Grand Order」とはFate/Grand Orderの記事を読みながらポイントをGETすることができたり友達募集や掲示板を同時に楽しめる総合攻略アプリです。
-
-仲間とマルチで盛り上がるも、友達とチャットで盛り上がるも、
-使い方はあなた次第！
-
-最新の聖晶石攻略掲示板で快適にFate/GOを遊びつくせ！
-
-【 注意点 】
-本アプリにおけるポイントは運営事務局が独自に行うものであり、米Apple社は一切関係ありません。
-本アプリは必ず電波のある場所でご利用ください。
-本アプリのご利用前には必ず利用規約をお読み下さい。
-AmazonおよびAmazonのロゴは、Amazon.com, Inc.またはその関連会社の商標です。
-本アプリは、非公式サービスであり、運営会社様とは一切関係ありません。
-FGO最強攻略 for Fate/Grand Order, Fate/Grand Order（フェイトグランドオーダー）に関する情報をまとめてお届け！
-最新ニュース、攻略まとめ、実況動画、掲示板をこのアプリ1つで全て網羅！
-記事・動画・掲示板のタイプ別にメニューが分けられているので、欲しい情報が一目で分かる！
-タブを自由に選択・並べ替えできるカスタマイズ機能付き！
-メニューごとに人気・急上昇ランキング機能付き！
-
-
-◆◆アプリの特徴◆◆
-・動画を続けて再生できる連続再生機能付き
-・お気に入り機能（アプリ内フォルダに保存）
-・シャッフル、リピート再生10秒送り、10秒戻し機能付き
-・スリープタイマー機能付き
-・新着、急上昇、人気ランキング検索機能付き
-・履歴、お気に入り内シャッフル再生対応
-
-
-掲示板の書き込みでは、皆さまに安心してご利用いただくためにも、誹謗中傷や迷惑行為、RMT行為はお止め下さい。
-FGO最強攻略 for Fate/Grand OrderはFate/Grand Orderの非公式アプリです。運営会社とは一切関係ありません。
-FGO究極攻略 for Fate/Grand Order, Fate/Grand Order（フェイトグランドオーダー）に関する情報をまとめてお届け！
-最新ニュース、攻略まとめ、実況動画、掲示板をこのアプリ1つで全て網羅！
-記事・動画・掲示板のタイプ別にメニューが分けられているので、欲しい情報が一目で分かる！
-タブを自由に選択・並べ替えできるカスタマイズ機能付き！
-メニューごとに人気・急上昇ランキング機能付き！
-
-
-◆◆アプリの特徴◆◆
-・動画を続けて再生できる連続再生機能付き
-・お気に入り機能（アプリ内フォルダに保存）
-・シャッフル、リピート再生10秒送り、10秒戻し機能付き
-・スリープタイマー機能付き
-・新着、急上昇、人気ランキング検索機能付き
-・履歴、お気に入り内シャッフル再生対応
-
-
-掲示板の書き込みでは、皆さまに安心してご利用いただくためにも、誹謗中傷や迷惑行為、RMT行為はお止め下さい。
-FGO究極攻略 for Fate/Grand OrderはFate/Grand Orderの非公式アプリです。運営会社とは一切関係ありません。
-FGO完全攻略 for Fate/Grand Order, Fate Grand Orderに関する情報をまとめてお届け！
-最新ニュース、攻略まとめ、実況動画、掲示板をこのアプリ1つで全て網羅！
-記事・動画・掲示板のタイプ別にメニューが分けられているので、欲しい情報が一目で分かる！
-タブを自由に選択・並べ替えできるカスタマイズ機能付き！
-メニューごとに人気・急上昇ランキング機能付き！
-
-
-◆◆アプリの特徴◆◆
-・動画を続けて再生できる連続再生機能付き
-・お気に入り機能（アプリ内フォルダに保存）
-・シャッフル、リピート再生10秒送り、10秒戻し機能付き
-・スリープタイマー機能付き
-・新着、急上昇、人気ランキング検索機能付き
-・履歴、お気に入り内シャッフル再生対応
-
-
-掲示板の書き込みでは、皆さまに安心してご利用いただくためにも、誹謗中傷や迷惑行為、RMT行為はお止め下さい。
-FGO完全攻略 for Fate/Grand OrderはFate/Grand Orderの非公式アプリです。運営会社とは一切関係ありません。
-Fate/The One, In this free-to-play RPG, time and space have been torn apart. Heroes from throughout history have been brought to a new era, along with you. It is up to you to stop the evil forces at work from destroying the world and re-writing history. But be careful…you don’t know who you can trust and who is secretly out to get you!
-
-[History]
-Meet, befriend, and battle with heroes of the ages, from Caesar to Robin Hood. You must fight for good and stop the evil forces from tearing our world apart at the seams! 
-Face your destiny and try to keep history from being re-written.
-
-[Character customization]
-Hundreds of items, weapons, character customizations, and more create for a wonderful new world of adventure. Customize your character, level up, and conquer evil every step of the way!
-
-[Hero]
-Collect as many heroes as you can to aid you in your adventures. Each hero comes with their own unique attributes, strengths, and weaknesses. Create teams that work well together to take on the toughest opponents around the world.
-
-[Game Content]
-Battle through an epic storyline for the ages, as well as with people around the world in different battle modes such as: Arena, Expedition, Dungeons, and The Tower Of Destiny!
-Endless adventures and battles await you!
-
-[Strategic Combats]
-This turn-based RPG uses various elements and other magical phenomenon to truly increase the difficulty of battling your way through endless demons, monsters, and other players. Whether you win or lose is entirely up to you – so prepare your team of heroes carefully, less you be defeated!
-
-[Guilds]
-Meet and play with other players from around the world. Help each other out, backstab, undermine, and go to war with one another. Our guild system allows players to group together to assist each other and share in the spoils of war. Don’t go it alone, if you know what’s good for you!
-
-Prove your power - you won’t be alone!
-
-
-Facebook: facebook.com/fatetheone/
-Fan Content Policy: http://minusmobile.com
-Blade &amp; Wings: Fate of Legends, Blade &amp; Wings (1st Anniv) is a 3D anime online action role-playing game that rated as a promising mobile MMORPG, which brings high quality graphics with a captivating story line and features a variety of challenging quests. To be distinguished from the crowded realistic style action RPG games, Blade &amp; Wings brings a bright and fresh anime. 
-
-New Features:
-
-[Character System Escalation]
-Unlock character&#39;s level to Lv. 500 and new Rebirth.
-
-[Pet&#39;s Awaken System]
-Strengthen your pets into different forms for stronger assist in battles.
-
-[Ascension of Mounts]
-Power up your mounts with ascension crystals for ATK and HP bonus. 
-
-[Forge System]
-Forge surplus materials into valuable items.
-
-[Refine Wings for extra attributes]
-[New Heirlooms, Outfits, T9/T10 Gears, Offline Friends&#39; Assist, etc]
-
-For too long, players have become accustomed to battling against just NPCs in traditional games. Blade &amp; Wings uniquely impact this primal setting and reverses the identity between NPC and player. In Blade &amp; Wings, you become one of the NPC forces who break their seal and people surrounding you are the players and furious enemies. Join this epic anime game and show your enemies no mercy as you fire them out of this chaos then build a new future with order.
-
-Game Features of Blade &amp; Wings: 
-
-[Explore Endless Adventures]
-Traverse through beautiful dungeons and go on invigorating adventures through an intriguing novel-based storyline. Tackle challenging missions and crusade against what stands before you.
-
-[Stunning 3D Gameplay Visuals]
-Featuring a breathtaking fantasy 3 dimensional world beloved by fans of anime players marvel at this fully-featured, unique MMORPG on their mobile device. Blade &amp; Wings breaks the trends of traditional mobile games and brings a new gaming experience to its players.
- 
-[Tame Epic Bosses into Pets]
-Defeat the various world demons and dungeon bosses for a chance to tame these vicious monsters from questland to fight by your side. Continue to strengthen and power up your hero by collecting rare equipment and emblem materials in the fierce daybreak arena.
-
-[Intense Real-time PvP War Battles &amp; Cross-Server Events]
-With heroic contests aplenty and fantasy battlegrounds galore, players can experience both PvP and PvE action in Blade &amp; Wings. Team up with brave guild-mates, and establish a frontier of legacy awakening. Challenge every master from different servers in Arena, Honor Battle, World Boss, etc.
-
-[Numerous Outfits &amp; Mounts]
-With a wealth of unique outfits, legendary pets, and mighty mounts to choose from, players have a nearly infinite amount of ways to customize their heroes.
-
-[Level Up Offline]
-Set your hero to train while you are away and you will return to a stronger, more powerful hero to battle with. Rank to the champions list and enhance power without all the hours of grinding!
-
-Follow Blade &amp; Wings on Facebook to regularly receive free in-game gifts and rewards. There are also many interesting events and activities waiting for your participation.
-
-Like us on Facebook: https://www.facebook.com/bladeandwings/
-Discord: https://discord.gg/3AuF9Ka
-Official Website: http://bw.poppace.com/
-Support E-mail: bwgm@poppace.com
-ゲーム実況動画まとめ for Fate/Grand Order(FGO), Fate/Grand Order(FGO)のゲーム実況動画をまとめて連続再生できるアプリが登場！
-見たいチャンネルを選択することが出来るので、自分だけのプレイリストが作れちゃいます。
-
-
-プレイ動画を観ながら攻略の参考にしたり、シェア機能を使って友達に共有して盛り上がりましょう！
-
-
-【主な機能】
-・連続再生機能が付いているので、作業中再生しっぱなしで最新の動画が手放しで次々とチェックできる！
-・お気に入り機能で何度も見たい動画はブックマークできる！
-・シェア機能が搭載されているのでSNSへのシェアもらくちんです！
-・人気ランキング機能がついているので忙しい方も人気の動画を見逃すことなくチェックできます。
-・チャンネルリスト機能が搭載されており、好きなYOUTUBEのチャンネルだけをチェックできます。
-ブログまとめニュース速報 for Fate/Grand Order(Fate/GO), ▼姉妹アプリ累計140万ダウンロード突破の超人気シリーズからFate/GOのアプリが登場！▼
-Fate/GOのニュース、まだブラウザで見てるんですか？
-このアプリさえあれば1タップで簡単にFate/GOニュースがチェックできます！
-1タップの超簡単操作で最新のFate/GOニュースがサクサク閲覧可能！
-
-自動で幅広いFate/GOニュースサイトから最新情報を取得するので、見逃しなし！
-ランキング機能で今もっともホットな話題をいつでもフォロー！
-お気に入り機能で後で熟読する情報も集めよう！
-
-こんな方におすすめです！
-・Fate/GO関連最新速報情報が簡単に見たい！
-・いちいちニュースサイトを見に行くのは面倒！
-・常に最新情報をチェックしたい！
-
-Twitter, Facebook, LINE等のソーシャル連携も万全！どんどんシェアしよう！
-キャンペーン中の今なら永久完全無料でアプリをゲットできます！
-
-***本アプリはFate/Grand Orderの公式アプリではありません***
-The Seven Deadly Sins, Are you ready to enjoy dynamic combat, breathtaking animations, and a riveting story true to the original?
-
-Download the amazing cinematic anime game, The Seven Deadly Sins: Grand Cross, right now!
-
-=====================================
-Features of The Seven Deadly Sins: Grand Cross 
-=====================================
-
-▶ A brand-new turn-based RPG! A novel approach to combat! A strategic combat system utilizing skill synthesis.
-Skills with the same star rank upgrade to a higher rank when they&#39;re next to each other!
-Feel the thrill of battle with each turn in the dynamic combat system.
-Combine cards and use them to trigger an &#34;Ultimate Move&#34; to decimate opponents!
-Create your own strategy by combining the unique skills of [The Seven Deadly Sins] characters.
-
-▶ Cooperate with friends to take down a giant demon in Death Match mode, and enjoy exciting and diverse PvP content.
-Enjoy Death Match, 2-player cooperative content played in real time!
-Defeat demons with a friend before time expires to defend the kingdom!
-An Arena where you can compete with players all around the world awaits.
-Find your own strategy to win!
-
-▶ Build your very own team in the [The Seven Deadly Sins]!
-[The Seven Deadly Sins] heroes assemble!
-Dress up your characters in exclusive, never-before-seen outfits!
-Hairstyles and accessories galore to suit your customization needs!
-Check out the new looks of [The Seven Deadly Sins] characters!
-
-▶ The original world recreated in detail - the animated story beautifully reborn!
-The continent of Britannia has come to life! The Holy War that ended 3,000 years ago begins anew.
-Experience high-resolution 3D animated cutscenes and prepare for the Holy War alongside the characters of [The Seven Deadly Sins].
-
-▶ Characters rendered in AR, and various other easter eggs await you!
-
-※ Recommended Specs:
-- iOS 9.0 or higher
-- RAM: 2GB or higher
-
-※ This app offer in-app purchases. You can disable this feature by adjusting your device’s settings.
-By downloading this game, you are agreeing to our Terms of Service and Privacy Policy.
- - Terms of Use: http://help.netmarble.com/policy/terms_of_service.asp
- - Privacy Policy: http://help.netmarble.com/policy/privacy_policy.asp
-
-※ Optional access
-CAMERA
-- Allows the camera for AR function to take pictures with AR characters.
-PHOTO
-- Allows the application to read from the external storage.
-FGO攻略＆ニュースまとめアプリ for Fate/Grand Order, Fate/Grand Order（フェイト/グランドオーダー）の最新ニュースやまとめなどの関連情報が毎日更新！
-攻略速報やとっておきの裏技情報もこのアプリで手に入ります！
-
-【主な機能】
-・お気に入り機能で重要な記事の保存が可能
-・シェア機能が付いているのでSNSへの投稿もすぐに可能です
-・ブログリストが付いているので読みたいサイトのみの表示に切り替えることも可能！
-
-このアプリはFate/GOの非公式アプリです。運営会社とは一切関係ありません。
-攻略掲示板アプリ for Fate/Grand Order（フェイト グランドオーダー）, FateGOの掲示板アプリが登場！
-攻略についての質問・相談、フレンド募集やマルチプレイのメンバー募集など様々な用途で活用できる！
-
-
-・攻略に関するQ&amp;Aをトークしたい。
-・情報の報告＆交換がしたい
-・マルチプレイできる仲間が欲しい。
-・ゲーム内の様々なことについて語り合いたい。
-
-この掲示板に参加して、今すぐ仲間とトークで盛り上がろう！
-
-
-安心してご利用いただくためにも、誹謗中傷や迷惑行為、RMT行為はお止め下さい。
-
-このアプリはFate/Grand Orderの非公式アプリです。運営会社とは一切関係有りません。
-Animation Throwdown: CCG, FAMILY GUY! BOB’S BURGERS! FUTURAMA! AMERICAN DAD! KING OF THE HILL! It’s ANIMATION THROWDOWN!
-
-For the first time ever, five of your favorite animated shows are together in one amazing, multiplayer, collectable card game.
-
-Collect cards featuring hundreds of your favorite characters and moments from Family Guy, Bob&#39;s Burgers, Futurama, American Dad, and King of the Hill. Play card battles to prove that Bender is the greatest, or win and proclaim “Victory is mine!” like Stewie!
-
-Want to see if Futurama’s Planet Express can beat the Belchers of Bob’s Burgers? Collect characters, build and upgrade your deck, duel your friends and create new combos in an epic card battle bacchanal.
-
-The card game may be digital, but the stakes are real!* The fate of the world rests in your hands!**
-
-(*Stakes are not real.)
-(**The fate of the world does not rest in your hands.)
-
-STEWIE, BENDER, TINA BELCHER, HANK HILL &amp; ROGER THE ALIEN are all waiting for you! Yes, even Zoidberg is here!
-
-Download ANIMATION THROWDOWN now and start kicking and/or touching butts!
-
-ANIMATION THROWDOWN FEATURES:
-
-CARTOON CARD GAMES
-* Collectible card battle game that’s easy to learn and addicting to play.
-* Collect cards from five of your favorite cartoons!
-* Build decks from hundreds of cards and combos featuring characters from each show.
-* Collect, upgrade, and fuse your cards to victory.
-
-ANIMATED ADVENTURES
-* 25 Chapters featuring moments and locations from your favorite episodes.
-* Endless hours of play (provided you never stop playing).
-* Laugh till you drop your phone or tablet into the toilet!
-
-MULTIPLAYER CCG
-* Challenge other players from all over the globe in the multiplayer Arena.
-* Play card duels against friends or players online!
-
-CLASSIC CARTOON CAST
-* Seriously, though - five shows!
-* Family Guy is freakin’ sweet with Peter, Stewie, Brian and the whole Griffin family!
-* American Dad says “Good morning, USA!” with Stan Smith, Roger the Alien, Klaus and more!
-* Futurama welcomes you to the world of tomorrow with Fry, Bender, Leela, Zoidberg and more!
-* Bob&#39;s Burgers cooks the competition with Bob, Linda, Gene, Louise and Tina Belcher!
-* King of the Hill puts the “pain” in “propane” with Hank, Bobby, Dale Gribble and more!
-
-Your favorite cartoons are now a hilarious collectible card game! Download Animation Throwdown today!
-
-PLEASE NOTE: Animation Throwdown: The Quest for Cards is free to play, but some extra game items can be purchased for real money. You can disable in-app purchases in your device&#39;s settings.
-
-A network connection is required to play.
-
-Animation Throwdown: The Quest for Cards ™ and © 2017 Twentieth Century Fox Film Corporation. All Rights Reserved.
-FGO攻略まとめったー for Fate/Grand Order(フェイト・グランドオーダー), ファン必見！ユーザー満足度・支持率第一位のまとめアプリです。
-情報量No1保証！シリーズ累計300万ダウンロード達成！
-『FGO攻略まとめったー for Fate/Grand Order(フェイト・グランドオーダー)』はFate情報アプリの決定版！
-完全無料！毎時間スピード更新！情報量と使いやすさに徹底的にこだわりました！
-
-シンプル操作でサクサク動く！
-スワイプ１つでニュースも動画も爆速まとめ読み！
-
-随時更新されていく関連写真、最新ニュース、人気ツイート、ブログ記事、人気動画、テレビ番組情報をお楽しみ下さい。
-
-
-【アプリの使い方】
-
-●収録コンテンツ
-まとめ情報をタブごとに閲覧できます。
-最新記事と人気記事ランキングは中タブで切り替えることができます。
-タブの並びは設定画面から変更可能です。
-
-・写真まとめ
-・ニュースまとめ
-・ツイートまとめ
-・ブログまとめ
-・NAVERまとめ
-・Yahoo!知恵袋まとめ
-・動画まとめ
-・テレビ番組まとめ
-
-●表示設定（オススメ機能！）
-全コンテンツをお好きな項目別に表示できます。
-
-●画像保存機能
-表示中のサイトの画像を長押しで保存できます。
-
-●検索機能
-人気キーワードタブをクリック、またはキーワード入力で全記事を検索表示できます。文字と文字の間にスペースを空けることでAND検索も可能です。
-
-●ブックマーク
-お気に入りの記事を複数登録できます。
-
-●テレビ番組出演情報
-47都道府県に対応したテレビ番組出演情報を表示できます。
-
-●SNS投稿機能
-表示された記事をFacebook、Twitter、LINEにシェアできます。
-
-●記事読み上げ機能
-iOS独自機能を使い、表示された記事を読み上げることができます。
-音声のピッチも0.5～2.0倍に変更可能です。
-
-※当アプリはユーザーの声を反映して他アプリにはない機能やアップデートを重ねていきます。
-ご意見ご要望ドシドシお待ちしてます(･ω･)v
-
-【表示設定】
-Fate/Grand Order
-Fate/stay night
-Fate/Zero
-Fate/EXTRA
-Fate/Apocrypha
-プリズマイリヤ
-サーヴァント
-ガチャ
-イベント
-リセマラ
-クエスト
-アニメ
-ラジオ
-漫画
-フィギュア
-FateGO 攻略ニュース＆マルチ掲示板 for Fate Grand Order(フェイト), 話題のスマホゲーム【Fate/Grand Order】の攻略・裏技(裏ワザ)情報盛りだくさん！
-このアプリひとつで完全網羅！！みんなと繋がり楽しもう！！
-
-大人気アプリ【Fate/Grand Order】がこの攻略アプリで網羅できちゃう！
-
-
-【アプリの特徴】
-①最新ニュース情報をいち早く配信！
-
-②最新攻略動画をいち早く配信！
-
-③掲示板を使って皆で盛り上がろう！
-
-④相談をして仲間にアドバイスをもらおう！
-
-⑤◯秘な裏技(裏ワザ) 情報！
-
-ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-【注意点】
-当アプリはFate/Grand Order(ふぇいと/ぐらんどおーだー)の非公式アプリです。運営会社とは一切関係有りません。
-利用規約は必ずご確認下さい。
-本アプリの書込み閲覧などすべての機能は無料でご利用いただけます。
-
-ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-Bottle Cap Challenge: The Rise, Welcome to Bottle Cap Challenge Game inspired by the viral fenomenon #BottleCapChallenge with a unique gamplay.
-
-Just swipe on the screen to make the cap sipn as high as you can. Perfect for stress relive.
-
-Download the game NOW  for FREE and become the master of Bottle Cap Challenge. Have fun and enjoy!
-Leap of Fate, *** Minimum hardware: iPad 4, iPad mini 2, iPhone 5s. ***
-Support for MFi game controllers.
-Leap of Fate is a furiously-paced cyberpunk top-down shooter about overcoming your fears and achieving your fate. In a New York City where magic is real, you play as a technomage who must develop unspeakable powers to confront the Crucible of Fates. Can you survive the trials?
-
-Available languages : English, French, Spanish, German, Italian, Russian, Brazilian Portuguese, Simplified Chinese, Japanese, Turkish and Magyar.
-
-Join Leap of Fate&#39;s community
-www.leapoffategame.com
-www.twitter.com/CleverPlays
-www.facebook.com/cleverplays1
-
----------------------------------------------------------------------------------------------------
-
-Leap of Fate is a unique blend of isometric perspective, furiously-paced action, and roguelike elements. As one of four technomages hiding in the shadows of New York City, your time has come to confront the Crucible of Fates, a mysterious testing ground that will magically pit you against your own psychological demons. Your journey through the Crucible has you fighting hordes upon hordes of enemies and overcoming deviously laid traps. Your tools are your lightning-fast shadow walk, the powerful glyphs you find, and the magical skills that you upgrade along the way. Your reward for survival? Unspeakable power and a chance to uncover your true fate.
-
-Key Features:
-- Experience an extremely fast and satisfying action game, built around the ability to Shadow Walk 
-- Upgrade over a hundred magical skills, through an innovative system of randomly-generated skill trees
-- Discover the profound and intense stories of four characters, told through beautifully illustrated cinematics
-- Explore a modern-day cyberpunk fantasy spanning cybernetics labs, dark alleys and secret societies
-
-The challenge
-Combat in Leap of Fate is extremely quick and deadly. Not only will you face more than a hundred different types of enemies, ranging from pit fighters to mad cultists and hidden turrets, but the procedurally generated levels will keep you on your toes at all times. Be warned; once you die, you must restart from the beginning and try again. Hopefully, you&#39;ll have unlocked new permanent upgrades to help you along.
-
-Magic
-Within each game session, you will find many opportunities to gain magical power. In addition to the game-altering glyphs you randomly find along the way, there are more than a hundred magical abilities total, spread across the Mobility, Attack and Passive skill trees. The twist in Leap of Fate is that skill trees are randomly shuffled, ensuring that each game differs from the previous one. On one run­­, you&#39;ll float over pits and disintegrate enemies with Atomic Flash, while in the next, you&#39;ll be wielding a projectile-reflecting technology while calling upon the Greys to abduct your foes for you.
-
-Characters
-In Leap of Fate, you play one of four mages, each with their own distinct gameplay style and storyline:
-- Aeon, the shadow mage: Psychologically scarred by years of oppression in a secret society
-- Big Mo, the cyborg technomancer: Wrestling to come to terms with his dual nature
-- Mukai, the spirit channeler: Struggling to regain control of her mind from three powerful entities
-- Rasimov, the rogue occultist: A centuries-old mage on an endless quest to cheat death
-
-They say this place makes you face your own fears, your own demons. But it can also reveal your fate, if you survive the trials.
-Block Puzzle - Blast Jigsaw, How to Play:
-1.Drop blocks in order to create and destroy full lines on the screen both vertically and horizontally.
-2.Once you fill up a vertical or horizontal line, it will disappear, and vacating available space for new pieces.
-3.The more rows and columns you eliminate at one time, the more score you will be granted.
-4.Game will be over if there are no room for any new given blocks.
-
-Features: 
-1.Fine quality and sound effect.
-2.Free to play and suitable for all ages.
-3.No time limit, you can enjoy game for any time, anywhere and a short time.
-4.Resurgence chance to continue the game.
-
-Welcome to mind challenging puzzle world! Use science of strategy and tactics, We really hope you enjoy it!
-最強 攻略 ＆ 掲示板 for FGO, 国内最大級ゲーム攻略メディア「AppMedia」のFGO攻略がアプリ化！
-攻略情報と図鑑機能で、効率的なクエスト周回を完全サポート！
-さらに、人気のガチャシミュや、他マスターとの交流ができる
-掲示板機能も搭載。FGO攻略の最強ツールがここに誕生！
-
-
-■最強最速！旬の攻略情報
-Fate/Grand Order 最新のイベント情報を超速でお届け！
-効率的なクエスト周回をサポートします。
-AppMedia攻略班のTwitterとも連携し、Fate/GO のタイムリーな情報をPUSH通知でお届け！（PUSH通知をONにするとお知らせが届きます。）
-
-
-■ストーリー攻略
-Fate/Grand Order のストーリー攻略まとめに即アクセス！
-超効率的かつ安心のクリアガイドでサクサク進めて新イベントに臨もう！
-初心者にもやさしいガイドつきで、FGOを始めるユーザにも安心です。
-
-
-■お気に入り機能
-Fate/Grand Order の攻略記事、サーヴァント評価、礼装情報や
-リセマラランキングなど、好きな記事をお気に入り登録！
-もちろん削除や並びかえで自由にカスタマイズ。
-FGOマスターの強い味方になること間違いなし！
-
-■図鑑
-サーヴァント、礼装、強化素材別にサクっと調べる！
-充実の絞込み機能で、宝具や属性、特性からもラクラク調べることができます！随時更新されるFate/GOキャラランキングも、ワンタッチですぐに閲覧可能！
-
-
-■掲示板
-Fate/GOのガチャ結果報告、フレンド募集、雑談QA掲示板で、他マスターとの交流を楽しもう！fate 通、fate 好きのフレンドがきっと見つかる！
-
-
-■本番前の運試し！ガチャシミュレーター
-Fate/GO開催中のガチャイベントや注目の最新ガチャイベントのシミュレータを搭載！好きなキャラが出るまで引き倒そう！
-
-■聖昌石がいつでも5％OFF！充実のショップ機能！
-appmoneyとの連携により、Fate/GOの聖昌石がいつでも5%OFFで購入できます！（会員登録が必要です。）
-また旬のグッズが紹介されているので、眺めているだけでも楽しいです。より素敵なFGOライフをあなたに！
-
-※当アプリは Fate / Grand Order の非公式アプリです。
-SPEED TRACKER+, SPEED TRACKER+  - Displays your current speed, average and top speed, traveled distance in KM and Miles, trip time and map and compass for a better orientation. Also, you can create custom speed limits which have several tones for alerts, setup custom accelerations speed. There are no complicated setup menus for that, which is very convenient! 
-
-GPS accuracy for speed and tracking on map every day activity, can display simultaneously trips for several days for comparison of the routes.
-
-Head-Up Display or HUD - with the help of this function, you will be able to reflect the speedometer readings right on the windshield of your car. Just swipe Left/Right! Fast and easy!
-
-Features:
-------------------------
-- MPH and KMH
-- Map with autolocator, Compass and Altitude meter
-- Maximum and Average speed
-- HUD to display speed on the windshield
-- Portrait or Landscape mode
-- Swipe finger to adjust the screen brightness
-- Odometer to measure distance traveled
-- Graphically displayed GPS accuracy
-- Amazing graphics and animation
-
-Please, know that:
-• Subscriptions are automatically renewed unless auto-renew is turned off at least 24-hours prior the end of the current subscription period.
-• Payment will be charged to your iTunes Account when your purchase is confirmed.
-• Renewal will be charged to your account within 24-hours prior the end of the subscription current period.
-• Subscriptions may be managed and auto-renewal may be turned off in user’s Account Settings after purchase.
-• Any unused portion of a free trial period, if offered, will be forfeited when the user purchases a subscription to that publication, where applicable
-
-http://nordicnations.net/speedtrackerplus/privacy/
-http://nordicnations.net/speedtrackerplus/terms/
-Color Block 3D: Perfect Line, Welcome to Color Block 3D. This is the perfect game for all the fast paced puzzle game lovers. It is addictive, challenging and fun. Be prepered to test your reflexes and fast thinking to the MAX.
-
-HOW TO PLAY:
-Just tap on the screen to make the brick road turn and shift in order to fill the emty holes on the way.
-
-Get the game right NOW for FREE and star playing with your friends to see who can get the highest score.
-
-Have fun and enjoy.
-Race Ball 3D: Fun Color Run, Welcome to Race Ball 3D! The most addictive and challenging game full of jumping balls and rolling discs that will test your reflexes and reaction time. Once you start you won&#39;t be able to stop!
- 
-Just tap on the screen to make the ball jump from one rotating disc to another. Don&#39;t forget to collect gems on the road to progress to the next stage.
-
-Download the game today for FREE and start  challenging your friends to see who will get the highest score.
-Have fun and enjoy!
-【最強】攻略掲示板 for Fate/GO, あの最強掲示板シリーズから「Fate/GO」専用アプリが登場です！
-雑談、相談、質問や、フレンド募集など、様々な用途で活躍すること間違い無し！
-今すぐダウンロードして、最強プレイヤーを目指そう！
-
-◆◇◆雑談掲示板◆◇◆
-暇になったらすぐに語れる雑談掲示板！
-なんでもOK、Fate/GOに関する雑談をトークルームで繰り広げましょう
-
-◆◇◆Q&amp;A 質問掲示板◆◇◆
-困ったら協力！ユーザー同士のQ&amp;A掲示板！
-初心者でもOK！優しく教えてもらいましょう
-難しいクエストの攻略方法など、みんなで協力して、クリアしましょう
-
-◆◇◆フレンド募集掲示板◆◇◆
-マルチプレイできる友達が募集できる、フレンド募集掲示板！
-みんなで協力！あなたのFate/GOライフを充実させましょう
-山海经正版手游-国风单机养成, You will have an egg, hatch him. A fantasy mobile game with a mountain and sea worldview structure!
-According to legend, the evil gods who restrain the good and promote the evil, devour the beasts of evil spirits!
-(Chinese is supported) Chinese
-The official beast of the official Shinto Beast Encyclopedia is right in front of you!
-3D image quality, realistic capture!
-Let&#39;s start an unusual adventure!
-
-
-[3D unlock battle]
--The 3D unlocked combat perspective and the degree orientation of the magical fantasy world scene bring visual impact to players.
-
-[Just the World Warrior]
--Various characters and various gameplays, as well as arbitrarily selected characters
-Various gameplays, various roles for everyone to choose from, the rich game content provides a high degree of selectivity, and you can comfortably explore a romantic journey.
-
-[Short time]
--Exciting battles, experience cool skills
-The game moves smoothly, the sense of strike is smooth, and the operation is not limited to a fixed range of virtual joysticks. Super cool combat system, gain a happy victory experience.
-
-[he throne decided to fight! ]
--Peak matchup, team confrontation with the ultimate boss
-Work with multiple people to fight the ultimate leader, fight wildly and fight with super cool skills! Experience the most pleasing big chaos, full screen big move, bloody battle till the end, waiting for you to fight!
-Guda, Use Guda to plan ascension and skill enhancement materials for your servants.
-Escape From The Underworld, &#34;Escape from the Underworld Thieves Hideout&#34; is a mysterious adventure escape game aiming to escape from the hideout of the thieves who sneaked for treasure.
-
-&#34;Escape from the Underworld Thieves Hideout&#34; is a mysterious adventure escape game aiming to escape from the hideout of the thieves who sneaked for treasure.
-
-:::how to play:::
-Let&#39;s escape from the hide by solving the mystery based on the clue in the room.
-
-Use arrow keys to move.
-There is a place where details can be seen by tapping in the room.
-
-To escape you need to obtain items and use them.
-To use an item, tap from the item list and make it a selection state (red frame) and tap the part you want to use.
-
-Hints are displayed by viewing advertisements.
-Hints have concise hints and detailed hints.
-Animal: Group Calls Legacy Era, Animal is the easiest way to have group calls! Experience the only voice app designed specifically for talking in groups.
-
-Create separate rooms for your friends and family and easily hop between them! See who’s already online and talking and join their conversation. Animal is perfect for keeping in touch with the people who matter most.
-
-WHY YOU SHOULD USE ANIMAL
-
-• ORGANIZE groups of family and friends into separate rooms
-• NO LIMIT to how many people can be added to a group — the bigger the room the better!
-• SEE who is already talking
-• JUMP into a group conversation with the click of a button
-• HOP between rooms easily — be a social butterfly!
-• TALK ON THE GO. The app runs smoothly in the background
-• FREE! No phone number required.
-
-HOW YOU SHOULD USE ANIMAL
-
-• Talk while you Walk 
-• Communicate to Coordinate
-• Phone when you’re Alone
-• Hang Out while you Work Out
-• Chit Chat while you Sit Sat 
-• Exclaim while you Game
-• Speak while you Peak
-• Discuss when you’re on the Bus
-• Converse anywhere in the Universe
-• Exchange Info to Arrange a Disco
-• Call Friends to Bawl and make Amends
-• Miss your Family? With Animal that would be an Anomaly!
-• Voice your Rejoice
-• Tell Well, Don’t Yell or Dwell
-• Say Hi and never Say Bye 
-
-Download Animal and experience the cleanest, simplest, and most modern way to talk in groups. 
-
-Have questions, problems, or feedback? Reach out to us at getanimalapp@gmail.com.
-FGO素材計算ツール - FGO攻略, ※ 本アプリはFGO（Fate/Grand Order）の非公式アプリです。
-
-FGOの「素材集め」が効率的になるアプリが新登場！
-
-FGO素材計算ツールは
-すべてのFGOユーザーに送る素材計算アプリです。
-
-サーヴァント育成を徹底サポート！
-FGOのサーヴァント育成時に必要な素材を計算。
-素材の効率的な入手場所も分かりやすく教える便利ツールです。
-
-効率的に素材を集めて、好きなサーヴァントを育てよう！
-
-◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆
-使い方について
-◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆
-
-使い方はとてもカンタン！育てたいサーヴァントを選択するだけ。
-サーヴァントの育成度を入力すれば、必要な残り素材も自動計算されます。
-サーヴァントを複数育成するのに必要な素材数を、合計して表示することも可能です。
-
-◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆
-注意点
-◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆
-
-● 本アプリは個人が特定できるような端末情報等は
-取得していません。安心してご利用ください。 
-● 本アプリはFGO（Fate/Grand Order）の非公式アプリです。
-● TYPE-MOON / FGO PROJECTは、本アプリのスポンサー
-ではなく、本アプリと一切関係がありません。
-FGO最強攻略ツール for FGO, ◆◆◆ 全FGOユーザー必携！最強ツールが新登場！ ◆◆◆
-
-「FGO徹底攻略ツール」は、FGOの攻略が効率化すること間違いなしの攻略ツールです。
-
-「育成素材の計算」から「サーヴァント所持率チェッカー」、「素材の在庫管理」までコレ1つでOK！
-
-もちろん攻略班によるFGOの旬な「攻略ニュース」のお届けや、便利な「図鑑」や検索機能、「掲示板」までフル搭載！
-
-ガチャシュミレーターも遊べるから、ガチャを引く前の運試しにも使えます！
-
-
-■■■■■■■■■■■■■■■■■■■■■■■■■■■■
-FGO徹底攻略ツールのココがスゴい！
-■■■■■■■■■■■■■■■■■■■■■■■■■■■■
-
-
-【1】旬な情報をお届け！「最新攻略ニュース」
-
-FGOのイベントの速報や攻略情報に最速対応！
-
-日本最大級の攻略サイト「神ゲー攻略」の攻略班があなたのFGO攻略をトコトンサポートします。
-
-【2】欲しいFGO情報に即アクセス！「図鑑」機能
-
-テキストや並び替え、属性で絞り込みをかけたりと、サーヴァントだけではなく礼装や素材もサクサク検索できちゃいます。
-
-図鑑の表示もすばやく詳細情報を完備しているから、眺めているだけでも楽しいこと間違いなし。
-
-再臨画像を眺めたり、スキルを比較している間にいつの間にか時間が過ぎていることも…
-
-【3】サーヴァント育成のお供に！「素材計算」機能
-
-サーヴァント育成に重要なのが素材。育成に必要な素材の計算をこなしてくれる便利ツールも搭載。素材の効率的な入手場所も提供します。
-
-【4】「所持率チェッカー」でコンプ率をチェック！
-
-所持サーヴァントや礼装のコンプ率をチェックするツールも完全搭載。さらに育成に必要な素材の管理もできちゃいます。
-
-【5】「掲示板」や「コメント」で盛り上がろう！
-
-サーヴァントの評価や雑談まで、いろんな話題で他のマスターと交流するのも楽しみの1つ。
-
-
-■■■■■■■■■■■■■■■■■■■■■■■■■■■■
-お問い合わせについて
-■■■■■■■■■■■■■■■■■■■■■■■■■■■■
-
-大変お手数おかけしますが、当アプリのレビューにてお問い合わせ頂いてもご返信することができません。
-
-恐縮でございますが、アプリを起動した上で、下記の手順からお問い合わせくださいませ。
-
-TOPページ「設定」から「お問い合わせ」から本文の必要事項を残したまま、メールにてお問い合わせください。
-
-
-■■■■■■■■■■■■■■■■■■■■■■■■■■■■
-その他
-■■■■■■■■■■■■■■■■■■■■■■■■■■■■
-
-● 本アプリは個人が特定できるような端末情報等は取得していません。安心してご利用ください。 
-● 本アプリはFGO（Fate/Grand Order）の非公式アプリです。
-● TYPE-MOON / FGO PROJECTは、本アプリのスポンサーではなく、本アプリと一切関係がありません。
-● 本アプリで利用しているFGO（Fate/Grand Order）の画像は引用の範囲で
-超级攻略 for 命运-冠位指定, Fate系列首款正版手游《Fate/Grand Order》正式上线！《Fate/Grand Order》中文译名《命运-冠位指定》，简称《FGO》
-人类将于2016年灭绝---
-为什么？怎么会？是谁？做了什么？
-面对众多疑问，研究者们陷入了疑惑。就在这时，他们观测到了新的异变。
-公元2004年，日本某个地方都市，在这里，出现了前所未有的[无法观测的领域]
-为了保护与夺回人类未来，必须进行时间旅行重返过去，
-执行与“历史”对抗的作战！
-《超级攻略 for 命运-冠位指定》最专业的《命运-冠位指定》辅助攻略。礼装搭配、材料掉落、伤害公式，各种高端打法助你一步成神！
-
-【最精品的攻略】
-囊括各大网站、贴吧论坛的精品攻略。为您提供最前沿的游戏资讯。
-【最贴心的指导】
-为您提供各种剧情攻略、人物使用，职业详解，技能详细信息，助您一步成神。
-【最霸气的技巧】
-超级攻略，给你最给力的游戏攻略，最高杆的玩法，最实用的资料！
-不管你是老司机还是小菜鸡，你需要的都在这里！还等什么
-Call Me OverLord, “YGGDRASIL ！ It sprouts in the past, flourishes in the present, and extends to the infinite future... You inadvertently cross the different world supported by the world tree. As the newborn infant devil - &#34;son of the stars&#34;, you will start a great adventure!
-As a novice demon, you still need a lot of learning to become an adult demon in the future. In this world, you need:
-*Build your own city of the Lord as your base
-*Beat back the brave teams from all over the world to fight against you and protect your lovely demons
-*Arrange research work and master many skills of the world
-*Collect demons and summon to expand your battle options
-*Improve forging ability and arm your demon team to the teeth
-*Get the legend of the world, uncover the ancient legend of the demon king in sync with you
-*Explore nine worlds, meadgarde, Asgard, nedaville······
-*Collect the lost ancient secrets and master the lu&#39;en craft again
-*Participate in the dark Martial Arts Association, become famous in the demon world, and get the attention of the demons
-A.
-Go through, son of fate! Become a famous Lord of the devil! ~
-Customer service QQ: 3396740933
-Mail:3396740933@qq.com
 </pre>
 </div>
 </div>
@@ -13940,17 +13221,1205 @@ Mail:3396740933@qq.com
 </div>
 </div>
 </div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h3 id="Part-1:-iTunes">Part 1: iTunes<a class="anchor-link" href="#Part-1:-iTunes">&#182;</a></h3>
+</div>
+</div>
+</div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[24]:</div>
+<div class="prompt input_prompt">In&nbsp;[3]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">re</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># We can read in the itunes dataset using a simple pandas read_csv() command</span>
+<span class="n">itunes_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s2">&quot;./itunes_dataset/appstore_games.csv&quot;</span><span class="p">)</span>
+<span class="n">itunes_df</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
 </pre></div>
 
     </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt output_prompt">Out[3]:</div>
+
+
+
+<div class="output_html rendered_html output_subarea output_execute_result">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>URL</th>
+      <th>ID</th>
+      <th>Name</th>
+      <th>Subtitle</th>
+      <th>Icon URL</th>
+      <th>Average User Rating</th>
+      <th>User Rating Count</th>
+      <th>Price</th>
+      <th>In-app Purchases</th>
+      <th>Description</th>
+      <th>Developer</th>
+      <th>Age Rating</th>
+      <th>Languages</th>
+      <th>Size</th>
+      <th>Primary Genre</th>
+      <th>Genres</th>
+      <th>Original Release Date</th>
+      <th>Current Version Release Date</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>https://apps.apple.com/us/app/sudoku/id284921427</td>
+      <td>284921427</td>
+      <td>Sudoku</td>
+      <td>NaN</td>
+      <td>https://is2-ssl.mzstatic.com/image/thumb/Purpl...</td>
+      <td>4.0</td>
+      <td>3553.0</td>
+      <td>2.99</td>
+      <td>NaN</td>
+      <td>Join over 21,000,000 of our fans and download ...</td>
+      <td>Mighty Mighty Good Games</td>
+      <td>4+</td>
+      <td>DA, NL, EN, FI, FR, DE, IT, JA, KO, NB, PL, PT...</td>
+      <td>15853568.0</td>
+      <td>Games</td>
+      <td>Games, Strategy, Puzzle</td>
+      <td>11/07/2008</td>
+      <td>30/05/2017</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>https://apps.apple.com/us/app/reversi/id284926400</td>
+      <td>284926400</td>
+      <td>Reversi</td>
+      <td>NaN</td>
+      <td>https://is4-ssl.mzstatic.com/image/thumb/Purpl...</td>
+      <td>3.5</td>
+      <td>284.0</td>
+      <td>1.99</td>
+      <td>NaN</td>
+      <td>The classic game of Reversi, also known as Oth...</td>
+      <td>Kiss The Machine</td>
+      <td>4+</td>
+      <td>EN</td>
+      <td>12328960.0</td>
+      <td>Games</td>
+      <td>Games, Strategy, Board</td>
+      <td>11/07/2008</td>
+      <td>17/05/2018</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>https://apps.apple.com/us/app/morocco/id284946595</td>
+      <td>284946595</td>
+      <td>Morocco</td>
+      <td>NaN</td>
+      <td>https://is5-ssl.mzstatic.com/image/thumb/Purpl...</td>
+      <td>3.0</td>
+      <td>8376.0</td>
+      <td>0.00</td>
+      <td>NaN</td>
+      <td>Play the classic strategy game Othello (also k...</td>
+      <td>Bayou Games</td>
+      <td>4+</td>
+      <td>EN</td>
+      <td>674816.0</td>
+      <td>Games</td>
+      <td>Games, Board, Strategy</td>
+      <td>11/07/2008</td>
+      <td>5/09/2017</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>https://apps.apple.com/us/app/sudoku-free/id28...</td>
+      <td>285755462</td>
+      <td>Sudoku (Free)</td>
+      <td>NaN</td>
+      <td>https://is3-ssl.mzstatic.com/image/thumb/Purpl...</td>
+      <td>3.5</td>
+      <td>190394.0</td>
+      <td>0.00</td>
+      <td>NaN</td>
+      <td>Top 100 free app for over a year.\nRated "Best...</td>
+      <td>Mighty Mighty Good Games</td>
+      <td>4+</td>
+      <td>DA, NL, EN, FI, FR, DE, IT, JA, KO, NB, PL, PT...</td>
+      <td>21552128.0</td>
+      <td>Games</td>
+      <td>Games, Strategy, Puzzle</td>
+      <td>23/07/2008</td>
+      <td>30/05/2017</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>https://apps.apple.com/us/app/senet-deluxe/id2...</td>
+      <td>285831220</td>
+      <td>Senet Deluxe</td>
+      <td>NaN</td>
+      <td>https://is1-ssl.mzstatic.com/image/thumb/Purpl...</td>
+      <td>3.5</td>
+      <td>28.0</td>
+      <td>2.99</td>
+      <td>NaN</td>
+      <td>"Senet Deluxe - The Ancient Game of Life and A...</td>
+      <td>RoGame Software</td>
+      <td>4+</td>
+      <td>DA, NL, EN, FR, DE, EL, IT, JA, KO, NO, PT, RU...</td>
+      <td>34689024.0</td>
+      <td>Games</td>
+      <td>Games, Strategy, Board, Education</td>
+      <td>18/07/2008</td>
+      <td>22/07/2018</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>For our purposes, I think it's safe to just delete the columns for <strong><em>URL, subtitle, the icon URL and age rating</em></strong> from this dataframe for the time being</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[4]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="k">try</span><span class="p">:</span>
+    <span class="k">del</span> <span class="n">itunes_df</span><span class="p">[</span><span class="s2">&quot;URL&quot;</span><span class="p">]</span>
+    <span class="k">del</span> <span class="n">itunes_df</span><span class="p">[</span><span class="s2">&quot;Icon URL&quot;</span><span class="p">]</span>
+    <span class="k">del</span> <span class="n">itunes_df</span><span class="p">[</span><span class="s2">&quot;Age Rating&quot;</span><span class="p">]</span>
+    <span class="k">del</span> <span class="n">itunes_df</span><span class="p">[</span><span class="s2">&quot;Subtitle&quot;</span><span class="p">]</span>
+<span class="k">except</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Rows already deleted&quot;</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>I will also rename the columns and convert some of them to a more manageable and readable format</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[5]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># Rename the columns</span>
+<span class="n">renamed_cols</span> <span class="o">=</span> <span class="p">[</span><span class="n">item</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">itunes_df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">tolist</span><span class="p">()]</span>
+<span class="n">itunes_df</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="n">renamed_cols</span>
+
+<span class="c1"># Convert the release data and current version release date columns into datetime objects</span>
+<span class="n">itunes_df</span><span class="p">[</span><span class="s2">&quot;current version release date&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">itunes_df</span><span class="p">[</span><span class="s2">&quot;current version release date&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">item</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">item</span><span class="p">))</span>
+<span class="n">itunes_df</span><span class="p">[</span><span class="s2">&quot;original release date&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">itunes_df</span><span class="p">[</span><span class="s2">&quot;original release date&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">item</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">item</span><span class="p">))</span>
+
+<span class="c1"># Convert the size (in bytes) to megabytes</span>
+<span class="n">itunes_df</span><span class="p">[</span><span class="s2">&quot;size&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">itunes_df</span><span class="p">[</span><span class="s2">&quot;size&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">item</span><span class="p">:</span> <span class="n">item</span><span class="o">/</span><span class="mi">1000000</span><span class="p">)</span>
+
+<span class="c1"># Break up the languages, and genres columns into lists</span>
+<span class="n">itunes_df</span><span class="p">[</span><span class="s2">&quot;languages&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">itunes_df</span><span class="p">[</span><span class="s2">&quot;languages&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">countries</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">countries</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">))</span>
+<span class="n">itunes_df</span><span class="p">[</span><span class="s2">&quot;genres&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">itunes_df</span><span class="p">[</span><span class="s2">&quot;genres&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">countries</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">countries</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">))</span>
+
+<span class="c1"># Rename some columns for brevity</span>
+<span class="n">itunes_df</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;size&quot;</span><span class="p">:</span> <span class="s2">&quot;size (MB)&quot;</span><span class="p">},</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">itunes_df</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt output_prompt">Out[5]:</div>
+
+
+
+<div class="output_html rendered_html output_subarea output_execute_result">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>id</th>
+      <th>name</th>
+      <th>average user rating</th>
+      <th>user rating count</th>
+      <th>price</th>
+      <th>in-app purchases</th>
+      <th>description</th>
+      <th>developer</th>
+      <th>languages</th>
+      <th>size (MB)</th>
+      <th>primary genre</th>
+      <th>genres</th>
+      <th>original release date</th>
+      <th>current version release date</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>284921427</td>
+      <td>Sudoku</td>
+      <td>4.0</td>
+      <td>3553.0</td>
+      <td>2.99</td>
+      <td>NaN</td>
+      <td>Join over 21,000,000 of our fans and download ...</td>
+      <td>Mighty Mighty Good Games</td>
+      <td>[DA,  NL,  EN,  FI,  FR,  DE,  IT,  JA,  KO,  ...</td>
+      <td>15.853568</td>
+      <td>Games</td>
+      <td>[Games,  Strategy,  Puzzle]</td>
+      <td>2008-11-07</td>
+      <td>2017-05-30</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>284926400</td>
+      <td>Reversi</td>
+      <td>3.5</td>
+      <td>284.0</td>
+      <td>1.99</td>
+      <td>NaN</td>
+      <td>The classic game of Reversi, also known as Oth...</td>
+      <td>Kiss The Machine</td>
+      <td>[EN]</td>
+      <td>12.328960</td>
+      <td>Games</td>
+      <td>[Games,  Strategy,  Board]</td>
+      <td>2008-11-07</td>
+      <td>2018-05-17</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>284946595</td>
+      <td>Morocco</td>
+      <td>3.0</td>
+      <td>8376.0</td>
+      <td>0.00</td>
+      <td>NaN</td>
+      <td>Play the classic strategy game Othello (also k...</td>
+      <td>Bayou Games</td>
+      <td>[EN]</td>
+      <td>0.674816</td>
+      <td>Games</td>
+      <td>[Games,  Board,  Strategy]</td>
+      <td>2008-11-07</td>
+      <td>2017-05-09</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>285755462</td>
+      <td>Sudoku (Free)</td>
+      <td>3.5</td>
+      <td>190394.0</td>
+      <td>0.00</td>
+      <td>NaN</td>
+      <td>Top 100 free app for over a year.\nRated "Best...</td>
+      <td>Mighty Mighty Good Games</td>
+      <td>[DA,  NL,  EN,  FI,  FR,  DE,  IT,  JA,  KO,  ...</td>
+      <td>21.552128</td>
+      <td>Games</td>
+      <td>[Games,  Strategy,  Puzzle]</td>
+      <td>2008-07-23</td>
+      <td>2017-05-30</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>285831220</td>
+      <td>Senet Deluxe</td>
+      <td>3.5</td>
+      <td>28.0</td>
+      <td>2.99</td>
+      <td>NaN</td>
+      <td>"Senet Deluxe - The Ancient Game of Life and A...</td>
+      <td>RoGame Software</td>
+      <td>[DA,  NL,  EN,  FR,  DE,  EL,  IT,  JA,  KO,  ...</td>
+      <td>34.689024</td>
+      <td>Games</td>
+      <td>[Games,  Strategy,  Board,  Education]</td>
+      <td>2008-07-18</td>
+      <td>2018-07-22</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h3 id="Part-2:-Google-Play">Part 2: Google Play<a class="anchor-link" href="#Part-2:-Google-Play">&#182;</a></h3>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[6]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># We can read in the google play CSV using the read_csv pandas function too </span>
+<span class="n">google_play_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s2">&quot;./google_play_dataset/googleplaystore.csv&quot;</span><span class="p">)</span>
+<span class="n">google_play_df</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt output_prompt">Out[6]:</div>
+
+
+
+<div class="output_html rendered_html output_subarea output_execute_result">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>App</th>
+      <th>Category</th>
+      <th>Rating</th>
+      <th>Reviews</th>
+      <th>Size</th>
+      <th>Installs</th>
+      <th>Type</th>
+      <th>Price</th>
+      <th>Content Rating</th>
+      <th>Genres</th>
+      <th>Last Updated</th>
+      <th>Current Ver</th>
+      <th>Android Ver</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>Photo Editor &amp; Candy Camera &amp; Grid &amp; ScrapBook</td>
+      <td>ART_AND_DESIGN</td>
+      <td>4.1</td>
+      <td>159</td>
+      <td>19M</td>
+      <td>10,000+</td>
+      <td>Free</td>
+      <td>0</td>
+      <td>Everyone</td>
+      <td>Art &amp; Design</td>
+      <td>January 7, 2018</td>
+      <td>1.0.0</td>
+      <td>4.0.3 and up</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>Coloring book moana</td>
+      <td>ART_AND_DESIGN</td>
+      <td>3.9</td>
+      <td>967</td>
+      <td>14M</td>
+      <td>500,000+</td>
+      <td>Free</td>
+      <td>0</td>
+      <td>Everyone</td>
+      <td>Art &amp; Design;Pretend Play</td>
+      <td>January 15, 2018</td>
+      <td>2.0.0</td>
+      <td>4.0.3 and up</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>U Launcher Lite – FREE Live Cool Themes, Hide ...</td>
+      <td>ART_AND_DESIGN</td>
+      <td>4.7</td>
+      <td>87510</td>
+      <td>8.7M</td>
+      <td>5,000,000+</td>
+      <td>Free</td>
+      <td>0</td>
+      <td>Everyone</td>
+      <td>Art &amp; Design</td>
+      <td>August 1, 2018</td>
+      <td>1.2.4</td>
+      <td>4.0.3 and up</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>Sketch - Draw &amp; Paint</td>
+      <td>ART_AND_DESIGN</td>
+      <td>4.5</td>
+      <td>215644</td>
+      <td>25M</td>
+      <td>50,000,000+</td>
+      <td>Free</td>
+      <td>0</td>
+      <td>Teen</td>
+      <td>Art &amp; Design</td>
+      <td>June 8, 2018</td>
+      <td>Varies with device</td>
+      <td>4.2 and up</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>Pixel Draw - Number Art Coloring Book</td>
+      <td>ART_AND_DESIGN</td>
+      <td>4.3</td>
+      <td>967</td>
+      <td>2.8M</td>
+      <td>100,000+</td>
+      <td>Free</td>
+      <td>0</td>
+      <td>Everyone</td>
+      <td>Art &amp; Design;Creativity</td>
+      <td>June 20, 2018</td>
+      <td>1.1</td>
+      <td>4.4 and up</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Looking at this dataset from a glance, I think it's safe to say that we can remove the columns for <strong><em>current version, android version, and content rating</em></strong></p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[7]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="k">try</span><span class="p">:</span>
+    <span class="k">del</span> <span class="n">google_play_df</span><span class="p">[</span><span class="s2">&quot;Current Ver&quot;</span><span class="p">]</span>
+    <span class="k">del</span> <span class="n">google_play_df</span><span class="p">[</span><span class="s2">&quot;Android Ver&quot;</span><span class="p">]</span>
+    <span class="k">del</span> <span class="n">google_play_df</span><span class="p">[</span><span class="s2">&quot;Content Rating&quot;</span><span class="p">]</span>
+<span class="k">except</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Rows already deleted&quot;</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>From here, I'm gonna lowercase the category column and remove underscores, change size to a proper float (converting bytes properly), remove any extra bits from installs (so it's just a flat install number), reformat Genres to be a string list, convert price into a float column and convert Last Updated to a proper datetime</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[8]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># Helper functions</span>
+
+<span class="c1"># This is just to extract the digits from a number that is formatted with commas. </span>
+<span class="c1"># We eliminate commas using the split function to properly extract the proper numerical amount.</span>
+<span class="k">def</span> <span class="nf">get_numeric</span><span class="p">(</span><span class="n">item</span><span class="p">):</span>
+    <span class="n">value</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">item</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s2">&quot;\d+&quot;</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="c1"># Take the Size entries and convert them to a readable amount in megabytes</span>
+<span class="k">def</span> <span class="nf">convert_to_megabytes</span><span class="p">(</span><span class="n">item</span><span class="p">):</span>
+    <span class="n">value</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">item</span><span class="p">)</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+    
+    <span class="c1"># Any value that involes &quot;varies with device&quot; is an nan</span>
+    <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="s2">&quot;VARIES WITH DEVICE&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+    
+    <span class="c1"># We search for any numerical value followed by an M or a K (mega or kilobytes)</span>
+    <span class="n">size_regex</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;^(\d+(?:\.\d+)?)([MK])$&quot;</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">size_regex</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+    <span class="c1">#print(result[1] + &quot; &quot; + result[2])</span>
+    <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;K&quot;</span><span class="p">:</span>
+        <span class="c1"># We divide kilobyte float values by 1000 to get megabytes</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span><span class="o">/</span><span class="mi">1000</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[9]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># Make the column names lowercase</span>
+<span class="n">renamed_cols</span> <span class="o">=</span> <span class="p">[</span><span class="n">item</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">google_play_df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">tolist</span><span class="p">()]</span>
+<span class="n">google_play_df</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="n">renamed_cols</span>
+
+<span class="c1"># Filter out the non game categories</span>
+<span class="n">google_play_df</span> <span class="o">=</span> <span class="n">google_play_df</span><span class="p">[</span><span class="n">google_play_df</span><span class="p">[</span><span class="s1">&#39;category&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;GAME&quot;</span><span class="p">]</span>
+
+<span class="c1"># Convert the last updated column to a proper datetime</span>
+<span class="n">google_play_df</span><span class="p">[</span><span class="s2">&quot;last updated&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">google_play_df</span><span class="p">[</span><span class="s2">&quot;last updated&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">item</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">item</span><span class="p">))</span>
+
+<span class="c1"># Convert the size (in bytes) to megabytes</span>
+<span class="n">google_play_df</span><span class="p">[</span><span class="s2">&quot;size&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">google_play_df</span><span class="p">[</span><span class="s2">&quot;size&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">item</span><span class="p">:</span> <span class="n">convert_to_megabytes</span><span class="p">(</span><span class="n">item</span><span class="p">))</span>
+
+<span class="c1"># Break up the genres of each game into lists, the genres are semicolon separated in their own respective entry</span>
+<span class="n">google_play_df</span><span class="p">[</span><span class="s2">&quot;genres&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">google_play_df</span><span class="p">[</span><span class="s2">&quot;genres&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">countries</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">countries</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;;&quot;</span><span class="p">))</span>
+
+    
+<span class="c1"># Remove the plus from the installs column and extract the actual number of installs </span>
+<span class="n">google_play_df</span><span class="p">[</span><span class="s2">&quot;installs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">google_play_df</span><span class="p">[</span><span class="s2">&quot;installs&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">item</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">get_numeric</span><span class="p">(</span><span class="n">item</span><span class="p">)))</span>
+
+<span class="c1"># Rename some columns for brevity</span>
+<span class="n">google_play_df</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;size&quot;</span><span class="p">:</span> <span class="s2">&quot;size (MB)&quot;</span><span class="p">},</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[10]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># Display the data frame</span>
+<span class="n">google_play_df</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt output_prompt">Out[10]:</div>
+
+
+
+<div class="output_html rendered_html output_subarea output_execute_result">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>app</th>
+      <th>category</th>
+      <th>rating</th>
+      <th>reviews</th>
+      <th>size (MB)</th>
+      <th>installs</th>
+      <th>type</th>
+      <th>price</th>
+      <th>genres</th>
+      <th>last updated</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>1653</th>
+      <td>ROBLOX</td>
+      <td>GAME</td>
+      <td>4.5</td>
+      <td>4447388</td>
+      <td>67.0</td>
+      <td>100000000</td>
+      <td>Free</td>
+      <td>0</td>
+      <td>[Adventure, Action &amp; Adventure]</td>
+      <td>2018-07-31</td>
+    </tr>
+    <tr>
+      <th>1654</th>
+      <td>Subway Surfers</td>
+      <td>GAME</td>
+      <td>4.5</td>
+      <td>27722264</td>
+      <td>76.0</td>
+      <td>1000000000</td>
+      <td>Free</td>
+      <td>0</td>
+      <td>[Arcade]</td>
+      <td>2018-07-12</td>
+    </tr>
+    <tr>
+      <th>1655</th>
+      <td>Candy Crush Saga</td>
+      <td>GAME</td>
+      <td>4.4</td>
+      <td>22426677</td>
+      <td>74.0</td>
+      <td>500000000</td>
+      <td>Free</td>
+      <td>0</td>
+      <td>[Casual]</td>
+      <td>2018-07-05</td>
+    </tr>
+    <tr>
+      <th>1656</th>
+      <td>Solitaire</td>
+      <td>GAME</td>
+      <td>4.7</td>
+      <td>254258</td>
+      <td>23.0</td>
+      <td>10000000</td>
+      <td>Free</td>
+      <td>0</td>
+      <td>[Card]</td>
+      <td>2018-08-01</td>
+    </tr>
+    <tr>
+      <th>1657</th>
+      <td>Bubble Shooter</td>
+      <td>GAME</td>
+      <td>4.5</td>
+      <td>148897</td>
+      <td>46.0</td>
+      <td>10000000</td>
+      <td>Free</td>
+      <td>0</td>
+      <td>[Casual]</td>
+      <td>2018-07-17</td>
+    </tr>
+    <tr>
+      <th>1658</th>
+      <td>Hello Kitty Nail Salon</td>
+      <td>GAME</td>
+      <td>4.2</td>
+      <td>369203</td>
+      <td>24.0</td>
+      <td>50000000</td>
+      <td>Free</td>
+      <td>0</td>
+      <td>[Casual, Pretend Play]</td>
+      <td>2018-04-17</td>
+    </tr>
+    <tr>
+      <th>1659</th>
+      <td>slither.io</td>
+      <td>GAME</td>
+      <td>4.4</td>
+      <td>5234162</td>
+      <td>NaN</td>
+      <td>100000000</td>
+      <td>Free</td>
+      <td>0</td>
+      <td>[Action]</td>
+      <td>2017-11-14</td>
+    </tr>
+    <tr>
+      <th>1660</th>
+      <td>Clash Royale</td>
+      <td>GAME</td>
+      <td>4.6</td>
+      <td>23133508</td>
+      <td>97.0</td>
+      <td>100000000</td>
+      <td>Free</td>
+      <td>0</td>
+      <td>[Strategy]</td>
+      <td>2018-06-27</td>
+    </tr>
+    <tr>
+      <th>1661</th>
+      <td>Temple Run 2</td>
+      <td>GAME</td>
+      <td>4.3</td>
+      <td>8118609</td>
+      <td>62.0</td>
+      <td>500000000</td>
+      <td>Free</td>
+      <td>0</td>
+      <td>[Action]</td>
+      <td>2018-07-05</td>
+    </tr>
+    <tr>
+      <th>1662</th>
+      <td>Pou</td>
+      <td>GAME</td>
+      <td>4.3</td>
+      <td>10485308</td>
+      <td>24.0</td>
+      <td>500000000</td>
+      <td>Free</td>
+      <td>0</td>
+      <td>[Casual]</td>
+      <td>2018-05-25</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h3 id="Part-3:-iTunes-Mobile-Game-Revenues">Part 3: iTunes Mobile Game Revenues<a class="anchor-link" href="#Part-3:-iTunes-Mobile-Game-Revenues">&#182;</a></h3>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>For this part of the project, we are actively scraping data from separate pages on a website and actively consolidating them using a for loop. This same process can be done with the iTunes store data although there will be many more pages to parse as a result.</p>
+<p>For this example/demonstration, I will be extracting data from four pages on the thinkgaming website pertaining to the app sales and consolidating them into one dataset. This code grabs the most recent results from the website.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[11]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># We can&#39;t iterate over the four pages so we have to make a separate query for each of them. </span>
+<span class="n">pages</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;https://thinkgaming.com/app-sales-data/&quot;</span><span class="p">,</span> <span class="s2">&quot;https://thinkgaming.com/app-sales-data/?page=2&quot;</span><span class="p">,</span> 
+         <span class="s2">&quot;https://thinkgaming.com/app-sales-data/?page=3&quot;</span><span class="p">,</span> <span class="s2">&quot;https://thinkgaming.com/app-sales-data/?page=4&quot;</span><span class="p">]</span>
+
+<span class="n">mobile_game_sales_df</span> <span class="o">=</span> <span class="kc">None</span>
+
+<span class="c1"># We will iterate through each page to gather the queries</span>
+<span class="k">for</span> <span class="n">page</span> <span class="ow">in</span> <span class="n">pages</span><span class="p">:</span>
+    <span class="n">query</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">page</span><span class="p">)</span>
+    <span class="n">soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">query</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="s2">&quot;html.parser&quot;</span><span class="p">)</span>
+    <span class="n">table</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;table&quot;</span><span class="p">)</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_html</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">table</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+    
+    <span class="c1"># We assign the mobile game sales dataframe to the first dataframe to assume the same number of columns</span>
+    <span class="c1"># The else statement allows us to append the other data to it on the other pages (all the data has the same number of columns)</span>
+    <span class="k">if</span> <span class="n">mobile_game_sales_df</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">mobile_game_sales_df</span> <span class="o">=</span> <span class="n">df</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">mobile_game_sales_df</span> <span class="o">=</span> <span class="n">mobile_game_sales_df</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        
+<span class="n">mobile_game_sales_df</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt output_prompt">Out[11]:</div>
+
+
+
+<div class="output_html rendered_html output_subarea output_execute_result">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>#</th>
+      <th>Free</th>
+      <th>Paid</th>
+      <th>Game</th>
+      <th>Publisher</th>
+      <th>Price</th>
+      <th>Revenue?Gross Revenue for the day, including in-app purchases and purchase price of the game. Subscribers can access ad revenue estimates.</th>
+      <th>New Installs?Number of times this game was installed during the day. Excludes re-installs.</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>1</td>
+      <td>22</td>
+      <td>-</td>
+      <td>Fortnite</td>
+      <td>Epic Games</td>
+      <td>Free</td>
+      <td>$2,766,224</td>
+      <td>18936</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>2</td>
+      <td>114</td>
+      <td>-</td>
+      <td>Clash of Clans</td>
+      <td>Supercell</td>
+      <td>Free</td>
+      <td>$2,417,331</td>
+      <td>20744</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>3</td>
+      <td>13</td>
+      <td>-</td>
+      <td>Roblox</td>
+      <td>Roblox Corporation</td>
+      <td>Free</td>
+      <td>$2,417,331</td>
+      <td>20754</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>4</td>
+      <td>79</td>
+      <td>-</td>
+      <td>Candy Crush Saga</td>
+      <td>King</td>
+      <td>Free</td>
+      <td>$1,812,241</td>
+      <td>17008</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>5</td>
+      <td>30</td>
+      <td>-</td>
+      <td>Coin Master</td>
+      <td>Moon Active</td>
+      <td>Free</td>
+      <td>$979,942</td>
+      <td>19116</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>6</td>
+      <td>77</td>
+      <td>-</td>
+      <td>Gardenscapes</td>
+      <td>Playrix</td>
+      <td>Free</td>
+      <td>$694,220</td>
+      <td>16726</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>7</td>
+      <td>56</td>
+      <td>-</td>
+      <td>Pokémon GO</td>
+      <td>Niantic, Inc.</td>
+      <td>Free</td>
+      <td>$414,535</td>
+      <td>17617</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>8</td>
+      <td>38</td>
+      <td>-</td>
+      <td>Homescapes</td>
+      <td>Playrix</td>
+      <td>Free</td>
+      <td>$357,151</td>
+      <td>15837</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>9</td>
+      <td>-</td>
+      <td>-</td>
+      <td>Toon Blast</td>
+      <td>Peak Games</td>
+      <td>Free</td>
+      <td>$284,305</td>
+      <td>19905</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>10</td>
+      <td>83</td>
+      <td>-</td>
+      <td>PUBG MOBILE - Mad Miramar</td>
+      <td>Tencent Mobile International Limited</td>
+      <td>Free</td>
+      <td>$237,195</td>
+      <td>20812</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>From here, we can get rid of the <strong><em>Free and Paid</em></strong> Columns since those pertain to rankings among free and paid games and we need to rename the columns for rank (i.e. "#"), revenue, and new installs</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[12]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="k">try</span><span class="p">:</span>
+    <span class="k">del</span> <span class="n">mobile_game_sales_df</span><span class="p">[</span><span class="s2">&quot;Free&quot;</span><span class="p">]</span>
+    <span class="k">del</span> <span class="n">mobile_game_sales_df</span><span class="p">[</span><span class="s2">&quot;Paid&quot;</span><span class="p">]</span>
+<span class="k">except</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Rows already deleted&quot;</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[13]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># Rename the # column, the Revenue column and the New Installs column </span>
+
+<span class="c1"># Lowercase first</span>
+<span class="n">mobile_game_sales_df</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="nb">str</span><span class="o">.</span><span class="n">lower</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># Rename columns</span>
+<span class="n">mobile_game_sales_df</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;#&quot;</span><span class="p">:</span> <span class="s2">&quot;rank&quot;</span><span class="p">,</span> <span class="n">mobile_game_sales_df</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">4</span><span class="p">]:</span> <span class="s2">&quot;revenue&quot;</span><span class="p">,</span> <span class="n">mobile_game_sales_df</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">5</span><span class="p">]:</span> <span class="s2">&quot;new installs&quot;</span><span class="p">},</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># Convert the revenue column into a proper integer value</span>
+<span class="n">mobile_game_sales_df</span><span class="p">[</span><span class="s2">&quot;revenue&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mobile_game_sales_df</span><span class="p">[</span><span class="s2">&quot;revenue&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">item</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">get_numeric</span><span class="p">(</span><span class="n">item</span><span class="p">)))</span>
+
+<span class="n">mobile_game_sales_df</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+
+    <div class="prompt output_prompt">Out[13]:</div>
+
+
+
+<div class="output_html rendered_html output_subarea output_execute_result">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>rank</th>
+      <th>game</th>
+      <th>publisher</th>
+      <th>price</th>
+      <th>revenue</th>
+      <th>new installs</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>1</td>
+      <td>Fortnite</td>
+      <td>Epic Games</td>
+      <td>Free</td>
+      <td>2766224.0</td>
+      <td>18936</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>2</td>
+      <td>Clash of Clans</td>
+      <td>Supercell</td>
+      <td>Free</td>
+      <td>2417331.0</td>
+      <td>20744</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>3</td>
+      <td>Roblox</td>
+      <td>Roblox Corporation</td>
+      <td>Free</td>
+      <td>2417331.0</td>
+      <td>20754</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>4</td>
+      <td>Candy Crush Saga</td>
+      <td>King</td>
+      <td>Free</td>
+      <td>1812241.0</td>
+      <td>17008</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>5</td>
+      <td>Coin Master</td>
+      <td>Moon Active</td>
+      <td>Free</td>
+      <td>979942.0</td>
+      <td>19116</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div>
+
+</div>
+
 </div>
 </div>
 
